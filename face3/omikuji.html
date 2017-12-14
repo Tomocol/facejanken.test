@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+</head>
+
+<body>
+    <div id="rand"></div>
+    <h1>ガーディアンおみくじ</h1>
+    <div id="main_content" tite="まほまほ"></div>
+    <button id="gardian_btn">
+        <img src="img/gardean.jpeg" alt="gardian_btn">
+    </button>
+    <div id="result" title="結果">
+        <h2>ここに結果が出るよ</h2>
+    </div>
+    <script>
+        var result = document.getElementById("result");
+        console.log(result);
+        var btn = document.querySelector("#gardian_btn");
+        btn.onclick = function (e) {
+          var n = 5;
+          var rand = Math.floor(Math.random() * n + 1);
+          console.log(rand);
+          // var rand = 1;
+          if (rand == 1) {
+              result.innerHTML = "大吉";
+          } else if (rand == 2) {
+              result.innerHTML = "小吉";
+          } else if (rand == 3) {
+              result.innerHTML = "小吉";
+          } else if (rand == 4) {
+              result.innerHTML = "小吉";
+          } else {
+              result.innerHTML = "凶";
+          }
+        };
+    </script>
+</body>
+
+</html>

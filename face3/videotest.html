@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" type="style" href="style.css">
+  <title>顔認識</title>
+  <style>
+    /* video 要素の上に canvas 要素をオーバーレイするための CSS */
+
+    #container {
+      /* コンテナ用の div について */
+      position: relative;
+      /* 座標指定を相対値指定にする */
+    }
+
+    #video {
+      /* カメラ映像を流す video について */
+      transform: scaleX(-1);
+      /* 左右反転させる */
+    }
+
+    #canvas {
+      /* 描画用の canvas について */
+      transform: scaleX(-1);
+      /* 左右反転させる */
+      position: absolute;
+      /* 座標指定を絶対値指定にして */
+      left: 0;
+      /* X座標を0に */
+      top: 0;
+      /* Y座標を0に */
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <!-- video の上に canvas をオーバーレイするための div 要素 -->
+    <video id="video" width="400" height="300" autoplay></video>
+    <!-- カメラ映像を流す video -->
+    <canvas id="canvas" width="400" height="300"></canvas>
+    <!-- 重ねて描画する canvas -->
+  </div>
+  <div id="dat"></div>
+
+  <!-- 撮影用のボタン　ここはvideoポーズで止める -->
+
+
+  <!-- データ表示用 div 要素 -->
+
+  <!-- clmtrackr 関連ファイルの読み込み -->
+  <script src="clmtrackr.js"></script>
+
+  <!-- clmtrackr のメインライブラリの読み込み -->
+  <script src="model_pca_20_svm_emotion.js"></script>
+  <!-- 顔モデル（※）の読み込み -->
+  <script src="emotionClassifier.js"></script>
+  <script src="emotionModel.js"></script>
+
+  <script>
+    // もろもろの準備
+    var video = document.getElementById("video"); // video 要素を取得
+    var canvas = document.getElementById("canvas"); // canvas 要素の取得
+    var context = canvas.getContext("2d"); // canvas の context の取得
+    var video_btn = document.getElementById("video-btn"); //★Videoボタンの取得
+    var btn_status = 0; //★ボタンは最初はoff
+
+    //画面クリックで再生・ポーズ（★この部分は付け足し）
+    video_btn.addEventListener("click", function () {
+      if (btn_status === 0) {
+        video.play();
+        btn_status = 1;
+      } else {
+        video.pause();
+        btn_status = 0;
+      }
+    });
+
+    // getUserMedia によるカメラ映像の取得
+    var media = navigator.mediaDevices.getUserMedia({ // メディアデバイスを取得
+      video: {
+        facingMode: "user"
+      }, // カメラの映像を使う（スマホならインカメラ）
+      audio: false // マイクの音声は使わない
+    });
+    media.then((stream) => { // メディアデバイスが取得できたら
+      video.src = window.URL.createObjectURL(stream); // video 要素にストリームを渡す
+    });
+
+    // clmtrackr の開始
+    var tracker = new clm.tracker(); // tracker オブジェクトを作成
+    tracker.init(pModel); // tracker を所定のフェイスモデル（※）で初期化
+    tracker.start(video); // video 要素内でフェイストラッキング開始
+
+    // 感情分類の開始
+    var classifier = new emotionClassifier();
+    classifier.init(emotionModel);
+
+    // 描画ループ
+    function drawLoop() {
+      requestAnimationFrame(drawLoop); // drawLoop 関数を繰り返し実行
+      var positions = tracker.getCurrentPosition(); // 顔部品の現在位置の取得
+      var parameters = tracker.getCurrentParameters();
+      var emotion = classifier.meanPredict(parameters);
+      showEmotionData(emotion); // データの表示
+      context.clearRect(0, 0, canvas.width, canvas.height); // canvas をクリア
+      tracker.draw(canvas); // canvas にトラッキング結果を描画
+    }
+    drawLoop(); // drawLoop 関数をトリガー
+    //描画ループのキャンセル
+    (function () {
+      var cancelAnimationFrame = window.cancelAnimationFrame ||
+        window.mozcancelAnimationFrame ||
+        window.webkitCancelAnimationFrame ||
+        window.mscancelAnimationFrame;
+      window.cancelAnimationFrame = cancelAnimationFrame;
+    })
+
+    //cancelanimationframeで停止する=>Drawloop関数に引き渡す。
+    //localstrageに数字を保存する
+
+
+    //感情データの表示
+    function showEmotionData(emo) {
+      var str = "";
+      for (var i = 0; i < emo.length; i++) {
+        str += emo[i].emotion + ":" +
+          emo[i].value.toFixed(1) + "<br>";
+      }
+      var dat = document.getElementById("dat");
+      dat.innerHTML = str;
+    }
+
+
+    //ここから追加の記述
+   
+
+    /* function onoff_func(obj, flag) 
+    {
+     obj.html(flag ? "ture" : "false");
+   obj.unbind("click").click(function () {
+      obj.html(flag ? "false" : "ture");
+      obj.unbind("click").click(function () {
+       onoff_func(obj, flag);
+      });
+   });
+  }
+  let table = $("<table>");
+  for (var i = 0; i < 10; ++i)*/
+
+
+  </script>
+</body>
+
+</html>
